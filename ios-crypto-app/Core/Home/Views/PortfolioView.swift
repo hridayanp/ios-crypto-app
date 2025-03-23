@@ -34,6 +34,12 @@ struct PortfolioView: View {
                 }
             }
         }
+        .onChange(of: vm.searchText) { oldValue, newValue in
+            if newValue.isEmpty {
+                selectedCoin = nil
+                removeSelectedCoin()
+            }
+        }
     }
 }
 
@@ -48,13 +54,13 @@ extension PortfolioView {
     private var coinLogoList: some View {
         ScrollView(.horizontal, showsIndicators: false, content: {
             LazyHStack(spacing: 10) {
-                ForEach(vm.allCoins) { coins in
+                ForEach(vm.searchText.isEmpty ? vm.portfolioCoins :  vm.allCoins) { coins in
                     CoinLogoView(coin: coins)
                         .frame(width: 75)
                         .padding(4)
                         .onTapGesture(perform: {
                             withAnimation(.easeInOut(duration: 0.3)) {
-                                selectedCoin = coins
+                                updateSelectedCoin(coin: coins)
                             }
                         })
                         .background(
@@ -109,7 +115,7 @@ extension PortfolioView {
                 .opacity(showCheckmark ? 1.0 : 0.0)
             
             Button {
-                showCheckmark.toggle()
+                saveButtonPressed()
             } label: {
                 Text("Save".uppercased())
             }
@@ -132,9 +138,13 @@ extension PortfolioView {
     }
     
     private func saveButtonPressed() {
-        guard let coin = selectedCoin else { return }
+        guard
+            let coin = selectedCoin,
+            let amount = Double(quantityText)
+        else { return }
         
         //save to portfolio
+        vm.updatePortfolio(coin: coin, amount: amount)
         
         
         // show checkmark
@@ -158,5 +168,19 @@ extension PortfolioView {
     private func removeSelectedCoin() {
         selectedCoin = nil
         vm.searchText = ""
+    }
+    
+    private func updateSelectedCoin(coin: CoinModel) {
+        selectedCoin = coin
+        
+        if let portfolioCoins = vm.portfolioCoins.first(where: { $0.id == coin.id }),
+           let amount = portfolioCoins.currentHoldings {
+            quantityText = "\(amount)"
+        }
+        else {
+            quantityText = ""
+        }
+        
+        
     }
 }
