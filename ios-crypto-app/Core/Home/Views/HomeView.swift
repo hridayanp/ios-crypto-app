@@ -14,6 +14,9 @@ struct HomeView: View {
     @EnvironmentObject private var vm: HomeViewModel
     @State private var showPortfolioView: Bool = false
     
+    @State private var selectedCoin: CoinModel? = nil
+    @State private var showDetailedView: Bool = false
+    
     var body: some View {
         ZStack {
             Color.theme.background.ignoresSafeArea()
@@ -46,6 +49,14 @@ struct HomeView: View {
                 Spacer(minLength: 0)
             }
         }
+        .background(
+            NavigationLink(
+                destination: DetailLoadingView(coin: $selectedCoin),
+                isActive: $showDetailedView,
+                label: {
+                    EmptyView()
+                })
+        )
     }
 }
 
@@ -59,6 +70,12 @@ struct HomeView_Previews: PreviewProvider {
 }
 
 extension HomeView {
+    private func segue(coin: CoinModel) {
+        selectedCoin = coin
+        showDetailedView.toggle()
+    }
+    
+    
     private var homeHeader: some View {
         HStack {
             CircleButtonView(iconName: showPortfolio ? "plus": "info")
@@ -99,8 +116,12 @@ extension HomeView {
     private var allCoinsList: some View {
         List {
             ForEach(vm.allCoins) {coin in
+                
                 CoinRowView(coin: coin, showHoldingsColumn: false)
                     .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
+                    .onTapGesture {
+                        segue(coin: coin)
+                    }
             }
         }
         .listStyle(PlainListStyle())
@@ -182,4 +203,6 @@ extension HomeView {
         .foregroundColor(Color.theme.secondaryText)
         .padding(.horizontal)
     }
+    
+    
 }
