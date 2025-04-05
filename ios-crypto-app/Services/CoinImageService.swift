@@ -32,11 +32,11 @@ class CoinImageService {
     private func getCoinImage() {
         if let savedImage = fileManager.getImage(imageName: imageName, folderName: folderName) {
             image = savedImage
-            print("FROM APP MANAGER")
+            
         }
         else {
             downloadCoinImage()
-            print("FROM NETWORK")
+           
         }
     }
     
